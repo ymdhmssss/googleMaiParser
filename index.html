@@ -1,246 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type='text/javascript' src='https://codebro-js.netlify.app/crud-api/regenerator-runtime.js'></script>
-  <script type='text/javascript' src='https://codebro-js.netlify.app/crud-api/min.js'></script>
-  <script src="https://codebro-js.netlify.app/sheetjs/xlsx.core.min.js"></script>
-  <script src="https://codebro-js.netlify.app/jquery.min.js"></script>
-  
-	<script type='text/javascript' src='https://codebro-js.netlify.app/moment.min.js'></script>
-	<script src="https://codebro-js.netlify.app/FileSaver.js"></script>
-	<script src="https://codebro-js.netlify.app/exceljs.min.js"></script>
-  
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      type="text/javascript"
+      src="https://codebro-js.netlify.app/crud-api/regenerator-runtime.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://codebro-js.netlify.app/crud-api/min.js"
+    ></script>
+    <script src="https://codebro-js.netlify.app/sheetjs/xlsx.core.min.js"></script>
+    <script src="https://codebro-js.netlify.app/jquery.min.js"></script>
 
-  <title>邮箱爬虫</title>
-  <style>
-    table {border:1px solid #ccc; border-collapse: collapse;width:100%;}
-    table td {border:1px solid #ccc;text-align:center;height:30px;}
-    table tr:first-child {background:#ccc;}
-  </style>
-</head>
-<body>
-  <div>
-  <h2 style="display: inline;">请选择excel</h2> <label id="tips" style="margin-left: 350px;color: blue;display:none">上传中，请稍后...</label>
-</div>
-  <input type="file" id="xlsx" accept=".xlsx" style="margin-left: 120px;margin-top: 20px;"/>
-  <input type="button" value="确定导入" id='btnImport' disabled/>
-  <input type="button" value="开始爬取" id='btnStart' style="margin-left:50px;margin-right: 50px;"/>
+    <script
+      type="text/javascript"
+      src="https://codebro-js.netlify.app/moment.min.js"
+    ></script>
+    <script src="https://codebro-js.netlify.app/FileSaver.js"></script>
+    <script src="https://codebro-js.netlify.app/exceljs.min.js"></script>
 
-  <input type="button" value="一键导出" id='btnExport' />
-  
-  <!-- <input type="button" value="导出商店" id='btnExportShop' style="margin-left:50px;"/> -->
+    <title>邮箱爬虫</title>
+    <style>
+      table {
+        border: 1px solid #ccc;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      table td {
+        border: 1px solid #ccc;
+        text-align: center;
+        height: 30px;
+      }
+      table tr:first-child {
+        background: #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h2 style="display: inline">请选择excel</h2>
+      <label id="tips" style="margin-left: 350px; color: blue; display: none"
+        >上传中，请稍后...</label
+      >
+    </div>
+    <input
+      type="file"
+      id="xlsx"
+      accept=".xlsx"
+      style="margin-left: 120px; margin-top: 20px"
+    />
+    <input type="button" value="确定导入" id="btnImport" disabled />
+    <input
+      type="button"
+      value="开始爬取"
+      id="btnStart"
+      style="margin-left: 50px; margin-right: 50px"
+    />
 
-  <input type="button" value="清除数据" id='btnClean' style="margin-left:50px;"/>
+    <input type="button" value="一键导出" id="btnExport" />
 
-  <!-- <input type="button" value="登陆" id='btnLogin' style="margin-left:50px;"/> -->
+    <!-- <input type="button" value="导出商店" id='btnExportShop' style="margin-left:50px;"/> -->
 
-  <h3></h3>
-  <div class="table">
-  </div>
-</body>
+    <input
+      type="button"
+      value="清除数据"
+      id="btnClean"
+      style="margin-left: 50px"
+    />
+
+    <!-- <input type="button" value="登陆" id='btnLogin' style="margin-left:50px;"/> -->
+
+    <h3></h3>
+    <div class="table"></div>
+  </body>
 </html>
 <script>
-   
-  
-  const jca=jscrudapi('/mail/api.php')
-   
-        async function expt(){
-        console.log('----expt:')
-        const result= await jca.list('export')
-        console.log('----result:')
-        console.log(result)
+  const path =  new URL(location.href).pathname
 
-        const lstAll=[...result.records]
-        
-        await handleExport(lstAll)
-      }  
-  
-  let workbook = null
-  let worksheet = null
-  
-  // 导出
-  const handleExport = async (lst,cb) => {
-    workbook = new ExcelJS.Workbook()
-    workbook.created = new Date()
-    workbook.modified = new Date()
-    worksheet = workbook.addWorksheet('sheet-1')
-    let w=22
-    let imgw=150
-    let h=150
-    
-    let tHeader = ['key1', 'key2', '邮箱', '手机号']
-    worksheet.columns = [
-    { header: 'key1', key: 'key1', width: w},  
-    { header: 'key2', key: 'key2', width: w},
-    { header: '邮箱', key: 'mail', width: w},
-    { header: '手机号', key: 'phone', width: w},
-    ]
-  let factoryname=''
-  const totalLen = lst.length
-  
-  for(let i=0;i<lst.length;i++){
-     const item=lst[i]
-     const row = worksheet.getRow(i+2)
-  
-  row.values = [item.key1,item.key2, item.mail, item.phone]
-  //row.height= h
-  //row.width= w
-  
+  //const prefix='googleMaiParser'
+  let prefix = path.replace("/index.html","")
+  prefix = prefix.substr(1);
 
+  const jca = jscrudapi("/" + prefix + "/api.php");
 
-const txt=`正在导出，请稍后： ${totalLen} / ${i+1}`
-console.log(txt)
-   $("#tips").text(txt)
-  await sleep(10)
+  async function expt() {
+    console.log("----expt:");
+    const result = await jca.list("export");
+    console.log("----result:");
+    console.log(result);
+
+    const lstAll = [...result.records];
+
+    await handleExport(lstAll);
   }
-  
-  $("#tips").text(`正在生成文件，请稍后...`)
 
-    const buffer = await workbook.xlsx.writeBuffer()
+  let workbook = null;
+  let worksheet = null;
+
+  // 导出
+  const handleExport = async (lst, cb) => {
+    workbook = new ExcelJS.Workbook();
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    worksheet = workbook.addWorksheet("sheet-1");
+    let w = 22;
+    let imgw = 150;
+    let h = 150;
+
+    let tHeader = ["key1", "key2", "邮箱", "手机号"];
+    worksheet.columns = [
+      { header: "key1", key: "key1", width: w },
+      { header: "key2", key: "key2", width: w },
+      { header: "邮箱", key: "mail", width: w },
+      { header: "手机号", key: "phone", width: w },
+    ];
+    let factoryname = "";
+    const totalLen = lst.length;
+
+    for (let i = 0; i < lst.length; i++) {
+      const item = lst[i];
+      const row = worksheet.getRow(i + 2);
+
+      row.values = [item.key1, item.key2, item.mail, item.phone];
+      //row.height= h
+      //row.width= w
+
+      const txt = `正在导出，请稍后： ${totalLen} / ${i + 1}`;
+      console.log(txt);
+      $("#tips").text(txt);
+      await sleep(10);
+    }
+
+    $("#tips").text(`正在生成文件，请稍后...`);
+
+    const buffer = await workbook.xlsx.writeBuffer();
     saveAs(
       new Blob([buffer], {
-        type: 'application/octet-stream',
+        type: "application/octet-stream",
       }),
-      ''+moment().format('YYYY/MM/DD HH:mm:ss')+'.xlsx'
-    )
-    if(cb)cb()
+      "" + moment().format("YYYY/MM/DD HH:mm:ss") + ".xlsx"
+    );
+    if (cb) cb();
+  };
+
+  function parseURL(url) {
+    var a = document.createElement("a");
+
+    a.href = url;
+
+    // var a = new URL(url);
+
+    return {
+      source: url,
+
+      protocol: a.protocol.replace(":", ""),
+
+      host: a.hostname,
+
+      port: a.port,
+
+      query: a.search,
+
+      params: (function () {
+        var params = {},
+          seg = a.search.replace(/^\?/, "").split("&"),
+          len = seg.length,
+          p;
+
+        for (var i = 0; i < len; i++) {
+          if (seg[i]) {
+            p = seg[i].split("=");
+
+            params[p[0]] = p[1];
+          }
+        }
+
+        return params;
+      })(),
+
+      hash: a.hash.replace("#", ""),
+
+      path: a.pathname.replace(/^([^\/])/, "/$1"),
+    };
   }
-    </script>
-
-<script>
- 
-async function showProgress(){
-
-   const process=await jca.list('process')
-   let table = `<tr><td style="width:5%">序号</td><td  style="width:20%">key1</td><td  style="width:45%">key2</td><td  style="width:15%">邮箱</td><td  style="width:15%">手机号</td></tr>`
-   if(process.records.length>0){  
-    const pinfo=process.records[0]
-     table = `<tr><td style="width:5%">序号</td><td  style="width:20%">key1</td><td  style="width:45%">key2  &nbsp;&nbsp;&nbsp;&nbsp;(${pinfo.parsed}/${pinfo.total})</td><td  style="width:15%">邮箱</td><td  style="width:15%">手机号</td></tr>`
-   }
-
-   const plst=await jca.list('mailparser', {order:'id,asc'})
-   
-   plst.records.forEach(function (item,index) {
-    
-    let tr = ``
-    let td = ``
-
-    td += `<td>${index+1}</td>`
-    td += `<td>${item.key1}</td>`
-    td += `<td>${item.key2}</td>`
-    td += `<td>${item.mail}</td>`
-    td += `<td>${item.phone}</td>`
-    // td += `<td>${item.parsedNum} / ${item.totalNum}</td>`
-
-    tr = `<tr>${td}</tr>`
-    table += tr;
-  })
-
-  table = `<table>${table}</table>`;
-  document.querySelector('.table').innerHTML = table; // 显示table表格
-
-}
-
-
 </script>
 
 <script>
-  let importdata=[]
-  let importdataImgNeed=[]
-  document.querySelector('#xlsx').onchange = function (e) {
-    importdata=[]
-    let file = e.target.files[0]
+  async function showProgress() {
+    const process = await jca.list("process");
+    let table = `<tr><td style="width:5%">序号</td><td  style="width:20%">key1</td><td  style="width:45%">key2</td><td  style="width:15%">邮箱</td><td  style="width:15%">手机号</td></tr>`;
+    if (process.records.length > 0) {
+      const pinfo = process.records[0];
+      table = `<tr><td style="width:5%">序号</td><td  style="width:20%">key1</td><td  style="width:45%">key2  &nbsp;&nbsp;&nbsp;&nbsp;(${pinfo.parsed}/${pinfo.total})</td><td  style="width:15%">邮箱</td><td  style="width:15%">手机号</td></tr>`;
+    }
+
+    const plst = await jca.list("mailparser", { order: "id,asc" });
+
+    plst.records.forEach(function (item, index) {
+      let tr = ``;
+      let td = ``;
+
+      td += `<td>${index + 1}</td>`;
+      td += `<td>${item.key1}</td>`;
+      td += `<td>${item.key2}</td>`;
+      td += `<td>${item.mail}</td>`;
+      td += `<td>${item.phone}</td>`;
+      // td += `<td>${item.parsedNum} / ${item.totalNum}</td>`
+
+      tr = `<tr>${td}</tr>`;
+      table += tr;
+    });
+
+    table = `<table>${table}</table>`;
+    document.querySelector(".table").innerHTML = table; // 显示table表格
+  }
+
+  
+</script>
+
+<script>
+  let importdata = [];
+  let importdataImgNeed = [];
+  document.querySelector("#xlsx").onchange = function (e) {
+    importdata = [];
+    let file = e.target.files[0];
     // readTxt(file)
-    readWorkbookFromLocalFile(file, function(workbook) {
+    readWorkbookFromLocalFile(file, function (workbook) {
       readWorkbook(workbook);
     });
-    $("#btnImport").removeAttr("disabled")
-  }
-  
+    $("#btnImport").removeAttr("disabled");
+  };
 
-//   function readTxt(file,onload) {
-//     var reader = new FileReader();
-//     // var file = files[0]; //files为上传组件获取的地址
-//     reader.readAsText(file, 'utf-8');
-//     reader.onload = function(){
-//       let setArr = new Set()
-//         reader.result.split('\n').forEach(function(v, i){
-//             console.log(v);
-//             setArr.add(v.trim())
-//         })
-//         // const lst=[]
-//         setArr.forEach(value => {
-//           const lst=value.split('#')
-//           let v=value
-//           let filterCategory=''
-//           if(lst.length>0){
-//             v=lst[0].trim()
-//           }
-//           if(lst.length>1){
-//             filterCategory=value.replace(v+'#','').trim()
-//           }
-//           importdata.push({'name':v,'createTime':moment().format('YYYY/MM/DD HH:mm:ss'),'filterCategory':filterCategory})
-//         })
-//         //  jca.create('keywords',lst).then(result=>console.log(result))
-//     }
-//     reader.onerror = function(){
-//         console.log('读取失败')
-//         console.log(reader.error)
-//     }
-// }
-
+  //   function readTxt(file,onload) {
+  //     var reader = new FileReader();
+  //     // var file = files[0]; //files为上传组件获取的地址
+  //     reader.readAsText(file, 'utf-8');
+  //     reader.onload = function(){
+  //       let setArr = new Set()
+  //         reader.result.split('\n').forEach(function(v, i){
+  //             console.log(v);
+  //             setArr.add(v.trim())
+  //         })
+  //         // const lst=[]
+  //         setArr.forEach(value => {
+  //           const lst=value.split('#')
+  //           let v=value
+  //           let filterCategory=''
+  //           if(lst.length>0){
+  //             v=lst[0].trim()
+  //           }
+  //           if(lst.length>1){
+  //             filterCategory=value.replace(v+'#','').trim()
+  //           }
+  //           importdata.push({'name':v,'createTime':moment().format('YYYY/MM/DD HH:mm:ss'),'filterCategory':filterCategory})
+  //         })
+  //         //  jca.create('keywords',lst).then(result=>console.log(result))
+  //     }
+  //     reader.onerror = function(){
+  //         console.log('读取失败')
+  //         console.log(reader.error)
+  //     }
+  // }
 
   function group(array, subNum) {
-    let index = 0
-    let newArray = []
-    while(index < array.length) {
-      newArray.push(array.slice(index, index += subNum))
+    let index = 0;
+    let newArray = [];
+    while (index < array.length) {
+      newArray.push(array.slice(index, (index += subNum)));
     }
-    return newArray
+    return newArray;
   }
 
-  $("#btnImport").on("click",async function(){
-    $("#btnImport").attr("disabled",'disabled')
-    $("#tips").css("display",'inline')
-   // console.log('0000000000000000000')
-    if(importdata.length>0){
-      await sendData()
-    }else{
-      alert('模板错误，请使用正确的模板!')
-        $("#tips").css("display",'none')
+  $("#btnImport").on("click", async function () {
+    $("#btnImport").attr("disabled", "disabled");
+    $("#tips").css("display", "inline");
+    // console.log('0000000000000000000')
+    if (importdata.length > 0) {
+      await sendData();
+    } else {
+      alert("模板错误，请使用正确的模板!");
+      $("#tips").css("display", "none");
     }
-   });
+  });
 
-
-   $("#btnStart").on("click",async function(){
-    let port=location.port
-    if(!port)port=80
+  $("#btnStart").on("click", async function () {
+    let port = location.port;
+    if (!port) port = 80;
     //alert(port)
-    window.open(`/mail/start.html?port=${port}`, '_blank')
+    window.open(
+      `/${prefix}/start.html?port=${port}&prefix=${prefix}`,
+      "_blank"
+    );
+  });
 
-   })
+  $("#btnExport").on("click", async function (fname) {
+    $("#tips").css("display", "inline");
+    $("#btnExport").attr("disabled", "disabled");
 
-   $("#btnExport").on("click",async function(fname){
-    
-    $("#tips").css("display",'inline')
-    $("#btnExport").attr("disabled",'disabled')
-    
     //  for(let i=0;i<lst.records.length;i++){
     //   $("#tips").text(`正在导出，请稍后...${lst.records.length} / ${i+1}`)
     //   await expt(lst.records[i].name)
     //  }
 
-     $("#tips").text(`正在导出，请稍后...`)
-     await expt()
+    $("#tips").text(`正在导出，请稍后...`);
+    await expt();
 
+    $("#tips").css("display", "none");
+    $("#btnExport").removeAttr("disabled");
+  });
 
-    $("#tips").css("display",'none')
-    $("#btnExport").removeAttr("disabled")
-  })
-
-/**
+  /**
   $("#btnExportShop").on("click",async function(){
    
     $("#tips").css("display",'inline')
@@ -256,77 +327,89 @@ async function showProgress(){
   })
 */
 
-function openwin(url) {
+  function openwin(url) {
     var a = document.createElement("a");
     a.setAttribute("href", url);
-     a.setAttribute("target", "_blank");
-     a.setAttribute("id", "camnpr");
-     document.body.appendChild(a);
-     a.click();
-  } 
+    a.setAttribute("target", "_blank");
+    a.setAttribute("id", "camnpr");
+    document.body.appendChild(a);
+    a.click();
+  }
 
-$("#btnLogin").on("click",function(){
-  openwin('')
-  })
+  $("#btnLogin").on("click", function () {
+    openwin("");
+  });
 
+  $("#btnClean").on("click", async function () {
+    $("#btnClean").attr("disabled", "disabled");
+    await fetch("/" + prefix + "/clean.php");
+    showProgress();
 
-  $("#btnClean").on("click",async function(){
-    $("#btnClean").attr("disabled",'disabled')
-    await fetch('/mail/clean.php')
-    showProgress()
+    $("#btnClean").removeAttr("disabled");
+    alert("操作成功!");
+  });
 
-    $("#btnClean").removeAttr("disabled")
-    alert('操作成功!')
-  })
-
-
-  async function sendData(){
-    const total=importdata.length
+  async function sendData() {
+    const total = importdata.length;
     let groupArray = group(importdata, 50);
-    let groupCount=groupArray.length
-    let t1= Date.parse(new Date());
-    for(let  i=0;i<groupCount;i++){
-      await jca.create('mailparser',groupArray[i]).then(result=>console.log(result))
-      let msg='共 '+total+' 条，当前正在上传第 '+i*50+' 到 '+(i+1)*50+" 条"
-       if(i==(groupCount-1)){
-             msg='共 '+total+' 条，当前正在上传第 '+i*50+' 到 '+total+" 条"
-           }
-      $("#tips").text(msg)
-      console.log(msg)
-      if(i==(groupCount-1)){
-        let t2= Date.parse(new Date());
-        const result=' 耗时：'+(t2-t1)/1000+'s'
-        console.log(result)
-        showProgress()
-        alert('导入成功!'+result)
-        $("#tips").css("display",'none')
+    let groupCount = groupArray.length;
+    let t1 = Date.parse(new Date());
+    for (let i = 0; i < groupCount; i++) {
+      await jca
+        .create("mailparser", groupArray[i])
+        .then((result) => console.log(result));
+      let msg =
+        "共 " +
+        total +
+        " 条，当前正在上传第 " +
+        i * 50 +
+        " 到 " +
+        (i + 1) * 50 +
+        " 条";
+      if (i == groupCount - 1) {
+        msg =
+          "共 " +
+          total +
+          " 条，当前正在上传第 " +
+          i * 50 +
+          " 到 " +
+          total +
+          " 条";
       }
-    await sleep(100)
+      $("#tips").text(msg);
+      console.log(msg);
+      if (i == groupCount - 1) {
+        let t2 = Date.parse(new Date());
+        const result = " 耗时：" + (t2 - t1) / 1000 + "s";
+        console.log(result);
+        showProgress();
+        alert("导入成功!" + result);
+        $("#tips").css("display", "none");
+      }
+      await sleep(100);
     }
   }
 
-   
-
-  function genArr(len){
-    let ret=[]
-    for(let i=0;i<len;i++){
-      ret.push({'isNeedDownload':1})
+  function genArr(len) {
+    let ret = [];
+    for (let i = 0; i < len; i++) {
+      ret.push({ isNeedDownload: 1 });
     }
-    return ret
+    return ret;
   }
 
   const sleep = (delaytime = 1000) => {
-      return new Promise(resolve => setTimeout(resolve, delaytime))
-    }
+    return new Promise((resolve) => setTimeout(resolve, delaytime));
+  };
 
   // 读取本地excel文件，读取Excel文件对象
   function readWorkbookFromLocalFile(file, callback) {
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       var data = e.target.result;
-      var workbook = XLSX.read(data, {type: 'binary'});
+      var workbook = XLSX.read(data, { type: "binary" });
       console.log(workbook);
-      if(callback) callback(workbook);
+      if (callback) callback(workbook);
     };
     reader.readAsBinaryString(file);
   }
@@ -334,59 +417,58 @@ $("#btnLogin").on("click",function(){
   function readWorkbook(workbook) {
     //console.log('------11111111111111:');
     var sheetNames = workbook.SheetNames; // 工作表名称集合
-    console.log(sheetNames)
+    console.log(sheetNames);
     var worksheet = workbook.Sheets[sheetNames[0]]; // 这里我们只读取第一张sheet
     var json = XLSX.utils.sheet_to_json(worksheet);
-    console.log('------json:',json);
+    console.log("------json:", json);
     // var rows = csv.split('\n'); // 转化为数组
     // rows.pop(); // 最后一行没用的
     // console.log(rows);  // 打印输出的数组
 
     //let table = `<tr><td>name</td></tr>`
 
-    json.forEach((v,i) => {
-        const o={}
-        console.log(v.key1)
-        o.key1=v.key1.trim()
-        o.key2=v.key2.trim()
-        o.key3='邮箱'
-        o.url=`https://www.google.com/search?q=${o.key1} ${o.key2} ${o.key3}`
-        o.createtime=getDateStr()
-        if(o.key1.length>0)importdata.push(o)
-    })
+    json.forEach((v, i) => {
+      const o = {};
+      console.log(v.key1);
+      o.key1 = v.key1.trim();
+      o.key2 = v.key2.trim();
+      o.key3 = "邮箱";
+      o.url = `https://www.google.com/search?q=${o.key1} ${o.key2} ${o.key3}`;
+      o.createtime = getDateStr();
+      if (o.key1.length > 0) importdata.push(o);
+    });
   }
 
-  function getDateStr(){
+  function getDateStr() {
     // 获取当前日期
     var date = new Date();
-     
+
     // 获取当前月份
     var nowMonth = date.getMonth() + 1;
-     
+
     // 获取当前是几号
     var strDate = date.getDate();
-     
+
     // 添加分隔符“-”
     var seperator = "-";
-     
+
     // 对月份进行处理，1-9月在前面添加一个“0”
     if (nowMonth >= 1 && nowMonth <= 9) {
-       nowMonth = "0" + nowMonth;
+      nowMonth = "0" + nowMonth;
     }
-     
+
     // 对月份进行处理，1-9号在前面添加一个“0”
     if (strDate >= 0 && strDate <= 9) {
-       strDate = "0" + strDate;
+      strDate = "0" + strDate;
     }
-     
+
     // 最后拼接字符串，得到一个格式为(yyyy-MM-dd)的日期
-    var nowDate = date.getFullYear() + seperator + nowMonth + seperator + strDate;
+    var nowDate =
+      date.getFullYear() + seperator + nowMonth + seperator + strDate;
     return nowDate;
   }
 
+  showProgress();
 
-  showProgress()
-
-  setInterval(showProgress, 10*1000)  
-
+  setInterval(showProgress, 10 * 1000);
 </script>

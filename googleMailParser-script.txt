@@ -5,7 +5,7 @@
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.google.com/search?q=*
-// @match        */mail/start.html*
+// @match        */googleMaiParser/start.html*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @require      https://codebro-js.netlify.app/jquery.min.js
 // @require      https://codebro-js.netlify.app/crud-api/regenerator-runtime.js
@@ -20,8 +20,13 @@ let webUrl = unsafeWindow.location.href
 let flag = 'codebro2024'
 let curr = {}
 const port=getQueryString('port');
+const prefix=getQueryString('prefix');
+
 //alert(port)
-const url='http://127.0.0.1:'+port+'/mail/api.php'
+
+//const apiPrefix='googleMaiParser'
+
+const url='http://127.0.0.1:'+port+'/'+prefix+'/api.php'
 const jca=jscrudapi(url);
 
 setTimeout(exec,3*1000)
@@ -29,7 +34,7 @@ setTimeout(exec,3*1000)
 async function exec(){
 $(unsafeWindow.document).ready(async function() {
     console.log('.......'+webUrl+'..........')
-    if(webUrl.includes('mail/start.html')){
+    if(webUrl.includes(prefix+'/start.html')){
          goNext()
 
     }else if(webUrl.includes(flag)){
@@ -106,7 +111,7 @@ function goNext(){
                 console.log(result)
                 if(result.records.length>0){
                   const obj=result.records[0]
-                  const url=obj.url+'&'+flag+'&key1='+obj.key1+'&id='+obj.id+'&port='+port
+                  const url=obj.url+'&'+flag+'&key1='+obj.key1+'&id='+obj.id+'&port='+port+'&prefix='+prefix
                   curr = obj
                   location.href=url
                 }else{
