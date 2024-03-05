@@ -1,0 +1,128 @@
+// ==UserScript==
+// @name         googleMailParser
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @match        https://www.google.com/search?q=*
+// @match        */mail/start.html*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @require      https://codebro-js.netlify.app/jquery.min.js
+// @require      https://codebro-js.netlify.app/crud-api/regenerator-runtime.js
+// @require      https://codebro-js.netlify.app/crud-api/min.js
+// @run-at       document-end
+// @grant       GM_addStyle
+// @grant       GM_xmlhttpRequest
+
+// ==/UserScript==
+
+let webUrl = unsafeWindow.location.href
+let flag = 'codebro2024'
+let curr = {}
+const port=getQueryString('port');
+//alert(port)
+const url='http://127.0.0.1:'+port+'/mail/api.php'
+const jca=jscrudapi(url);
+
+setTimeout(exec,3*1000)
+
+async function exec(){
+$(unsafeWindow.document).ready(async function() {
+    console.log('.......'+webUrl+'..........')
+    if(webUrl.includes('mail/start.html')){
+         goNext()
+
+    }else if(webUrl.includes(flag)){
+       startParser();
+    }
+ });
+}
+
+//-----------------start-------------------------------
+async function startParser(){
+    const id=getQueryString('id');
+    const key1=getQueryString('key1');
+
+    let _mails=''
+    let _phones=''
+
+    const divs=$('div[jscontroller="SC7lYd"]')
+    for(let i=0;i<divs.length;i++){
+       const item=divs[i]
+       const txt=$(item).text().trim()
+       //console.log(txt)
+       if(txt.includes(name)){
+          _mails=findmails(txt)
+          if(_mails.length>0){
+              _phones=findphones(txt)
+              break
+          }
+       }
+    }
+
+     console.log('_mails:',_mails)
+     console.log('_phones:',_phones)
+    console.log('1234567890')
+     jca.update ('mailparser',id,{mail:_mails,isParsed:1,phone:_phones}).then(
+            result=>{
+                console.log(result)
+                setTimeout(goNext,100)
+            }
+          ).catch (
+            error=>console.log(error)
+           );
+}
+
+async function doUpdate(id,param){
+return jca.update ('mailparser',id,param)
+}
+
+function findmails(txt){
+//var regex2 = /[\d\w]+\b@[a-zA-ZA-z0-9]+\.[a-z]+/g;
+ var regex2 = /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/g
+const result = txt.match(regex2)
+console.log('-----mails:',result)
+if(result){
+    return result.join(',')
+}else {
+    return ''
+}
+}
+
+function findphones(txt){
+var regex2 = /[1][3,4,5,6.7,8,9][0-9]{9}/g;
+const result = txt.match(regex2)
+console.log('------phones:',result)
+if(result&&result.length>0){
+    return result[0]
+}else {
+    return ''
+}
+}
+
+function goNext(){
+    jca.list('mailparser', {size:1,filter:'isParsed,eq,0',order:'id,asc'}).then(
+            result=>{
+                console.log(result)
+                if(result.records.length>0){
+                  const obj=result.records[0]
+                  const url=obj.url+'&'+flag+'&key1='+obj.key1+'&id='+obj.id+'&port='+port
+                  curr = obj
+                  location.href=url
+                }else{
+                  alert('已爬取完毕!')
+                }
+            }
+          ).catch (
+            error=>console.log(error)
+           );
+}
+
+function getQueryString(name) {
+    let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+    let r = window.location.search.substr(1).match(reg);
+    if (r != null) {
+        return decodeURIComponent(r[2]);
+    };
+    return null;
+ }
