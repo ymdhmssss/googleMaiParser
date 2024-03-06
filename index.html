@@ -37,6 +37,10 @@
         background: #ccc;
       }
     </style>
+    <style>
+      a{text-decoration:none;color:inherit;}
+      a:hover{text-decoration:none}
+      </style>
   </head>
   <body>
     <div>
@@ -109,12 +113,13 @@
     let imgw = 150;
     let h = 150;
 
-    let tHeader = ["key1", "key2", "邮箱", "手机号"];
+    let tHeader = ["key1", "key2", "邮箱", "手机号", "url"];
     worksheet.columns = [
       { header: "key1", key: "key1", width: w },
       { header: "key2", key: "key2", width: w },
-      { header: "邮箱", key: "mail", width: w },
+      { header: "邮箱", key: "mail", width: w+20 },
       { header: "手机号", key: "phone", width: w },
+      { header: "url", key: "url", width: w+50 },
     ];
     let factoryname = "";
     const totalLen = lst.length;
@@ -123,7 +128,7 @@
       const item = lst[i];
       const row = worksheet.getRow(i + 2);
 
-      row.values = [item.key1, item.key2, item.mail, item.phone];
+      row.values = [item.key1, item.key2, item.mail, item.phone, item.url];
       //row.height= h
       //row.width= w
 
@@ -203,8 +208,8 @@
       let td = ``;
 
       td += `<td>${index + 1}</td>`;
-      td += `<td>${item.key1}</td>`;
-      td += `<td>${item.key2}</td>`;
+      td += `<td><a href='${item.url}' target='blank'>${item.key1}</a></td>`;
+      td += `<td><a href='${item.url}' target='blank'>${item.key2}</a></td>`;
       td += `<td>${item.mail}</td>`;
       td += `<td>${item.phone}</td>`;
       // td += `<td>${item.parsedNum} / ${item.totalNum}</td>`
