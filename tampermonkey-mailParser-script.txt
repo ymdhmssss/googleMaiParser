@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name         googleMailParser
+// @name         mailParser
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.google.com/search?q=*
-// @match        */googleMaiParser/start.html*
+// @match        */maiParser/start.html*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @require      https://codebro-js.netlify.app/jquery.min.js
-// @require      https://codebro-js.netlify.app/crud-api/regenerator-runtime.js
-// @require      https://codebro-js.netlify.app/crud-api/min.js
+// @require      https://tube.now.cc/js/jquery.min.js
+// @require      https://tube.now.cc/js/crud-api/regenerator-runtime.js
+// @require      https://tube.now.cc/js/crud-api/min.js
 // @run-at       document-end
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
@@ -24,7 +24,7 @@ const prefix=getQueryString('prefix');
 
 //alert(port)
 
-//const apiPrefix='googleMaiParser'
+//const apiPrefix='mailParser'
 
 const url='http://127.0.0.1:'+port+'/'+prefix+'/api.php'
 const jca=jscrudapi(url);
